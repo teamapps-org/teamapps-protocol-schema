@@ -38,12 +38,20 @@ public class MessageModel implements MessageModelSchemaProvider {
 		MessageField airplane = schema.addObject("airplane");
 		schema.addTextField(airplane, "name");
 
+		MessageField address = schema.addObject("address");
+		schema.addTextField(address, "street");
+		schema.addTextField(address, "city");
+
 		MessageField person = schema.addObject("person");
 		schema.addTextField(person, "firstName");
 		schema.addTextField(person, "lastName");
 		schema.addTextField(person, "city");
 		schema.addTextField(person, "country");
 		schema.addTextField(person, "phone");
+		schema.addSingleReference(person, address, "address");
+		schema.addMultiReference(person, address, "addresses");
+
+
 
 		MessageField seat = schema.addObject("seat");
 		schema.addTextField(seat, "name");

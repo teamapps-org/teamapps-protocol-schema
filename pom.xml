@@ -67,7 +67,7 @@
         <dependency>
             <groupId>io.projectreactor</groupId>
             <artifactId>reactor-core</artifactId>
-            <version>3.4.16</version>
+            <version>3.4.17</version>
         </dependency>
 
         <dependency>
@@ -84,12 +84,13 @@
             <plugin>
                 <groupId>org.teamapps</groupId>
                 <artifactId>teamapps-protocol-schema-maven-plugin</artifactId>
-                <version>0.2</version>
+                <version>0.3</version>
                 <executions>
                     <execution>
                         <phase>generate-test-sources</phase>
                         <goals>
                             <goal>generate-message-test-model</goal>
+                            <goal>generate-test-protocol-api</goal>
                         </goals>
                     </execution>
                 </executions>

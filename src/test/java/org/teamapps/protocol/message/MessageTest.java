@@ -20,10 +20,7 @@
 package org.teamapps.protocol.message;
 
 import org.junit.Test;
-import org.teamapps.protocol.testmodel.Airplane;
-import org.teamapps.protocol.testmodel.Airport;
-import org.teamapps.protocol.testmodel.Location;
-import org.teamapps.protocol.testmodel.TestModel;
+import org.teamapps.protocol.testmodel.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -116,6 +113,28 @@ public class MessageTest {
 			byte[] bytes = airport.toBytes();
 			Airport airport2 = new Airport(bytes);
 			assertEquals(48.9f, airport2.getLocation().getLongitude(), 0f);
+		}
+	}
+
+	@Test
+	public void testLoop() throws IOException {
+		int size = 10_000;
+		for (int i = 0; i < size; i++) {
+			Person person = new Person();
+			person.setFirstName("Tom");
+			person.setLastName("Miller");
+			person.setPhone("" + i);
+			Address address = new Address().setStreet("Street-" + i).setCity("City-" + i);
+			person.setAddress(address);
+			for (int n = 0; n < 10; n++) {
+				Address adr = new Address().setStreet("Street-" + i).setCity("City-" + i);
+				person.addAddresses(adr);
+			}
+			byte[] bytes = person.toBytes();
+			Person p = new Person(bytes);
+			assertEquals("Tom", p.getFirstName());
+			assertEquals("Miller", p.getLastName());
+			assertEquals(10, p.getAddresses().size());
 		}
 	}
 }

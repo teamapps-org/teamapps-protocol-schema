@@ -19,7 +19,11 @@
  */
 package org.teamapps.protocol.message;
 
+import java.util.List;
+
 public interface MessageModel {
+
+	List<MessageField> getAllFields();
 
 	MessageField getFieldById(int id);
 

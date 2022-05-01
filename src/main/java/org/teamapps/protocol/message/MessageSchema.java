@@ -235,7 +235,8 @@ public class MessageSchema implements MessageModel {
 		return name;
 	}
 
-	public List<MessageField> getFields() {
+	@Override
+	public List<MessageField> getAllFields() {
 		return fields;
 	}
 

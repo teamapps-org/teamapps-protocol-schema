@@ -45,7 +45,7 @@ public class PojoBuilder {
 		File f = dir;
 		createServiceClasses(schema, dir);
 		createSchemaPojo(schema, dir);
-		schema.getFields().stream()
+		schema.getAllFields().stream()
 				.filter(field -> field.getType() == MessageFieldType.OBJECT)
 				.forEach(field -> createMessagePojoSave(schema, field, f));
 	}
@@ -105,7 +105,7 @@ public class PojoBuilder {
 		StringBuilder data = new StringBuilder();
 		StringBuilder registry = new StringBuilder();
 
-		for (MessageField field : schema.getFields()) {
+		for (MessageField field : schema.getAllFields()) {
 			int id = field.getId() - schema.getSchemaIdPrefix();
 			int parentId = (field.getParentFieldId() - schema.getSchemaIdPrefix());
 			int referenceId = field.getReferencedFieldId() - schema.getSchemaIdPrefix();

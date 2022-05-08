@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,13 +19,16 @@
  */
 package org.teamapps.protocol.schema;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PooledByteBufAllocator;
 import org.junit.Test;
 import org.teamapps.protocol.test.Company;
 import org.teamapps.protocol.test.Employee;
 
 import java.io.IOException;
+import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class MessageObjectTest {
 
@@ -74,17 +77,52 @@ public class MessageObjectTest {
 
 	@Test
 	public void testGenerated() throws IOException {
+		ByteBuf buffer = PooledByteBufAllocator.DEFAULT.buffer();
 		int size = 10_000;
+		int loopSize = 3;
+
 		for (int i = 0; i < size; i++) {
 			Company company = new Company();
 			company.setName("Test-Company");
-			for (int n = 0; n < 10; n++) {
-				company.addEmployee(new Employee().setFirstName("First-"+ n).setLastName("Last-" + n));
+			for (int n = 0; n < loopSize; n++) {
+				company.addEmployee(new Employee().setFirstName("First-" + n).setLastName("Last-" + n));
+			}
+			company.write(buffer, null);
+			Company p = new Company(buffer, null);
+			buffer.clear();
+			assertEquals("Test-Company", p.getName());
+			assertEquals(loopSize, p.getEmployee().size());
+		}
+
+		for (int i = 0; i < size; i++) {
+			Company company = new Company();
+			company.setName("Test-Company");
+			for (int n = 0; n < loopSize; n++) {
+				company.addEmployee(new Employee().setFirstName("First-" + n).setLastName("Last-" + n));
 			}
 			byte[] bytes = company.toBytes();
 			Company p = new Company(bytes);
 			assertEquals("Test-Company", p.getName());
-			assertEquals(10, p.getEmployee().size());
+			assertEquals(loopSize, p.getEmployee().size());
 		}
+	}
+
+	@Test
+	public void testRemapping() throws IOException {
+		Company company = new Company();
+		company.setName("Test-Company");
+		for (int n = 0; n < 10; n++) {
+			company.addEmployee(new Employee().setFirstName("First-" + n).setLastName("Last-" + n));
+		}
+
+		byte[] bytes = company.toBytes();
+		MessageObject message = new MessageObject(bytes, company.getModel(), null, null);
+		assertEquals("Test-Company", message.getStringProperty("name"));
+		Company company2 = Company.remap(message);
+		assertEquals("Test-Company", company2.getName());
+		List<Employee> employees = company2.getEmployee();
+		Employee employee0 = employees.get(0);
+		assertEquals("First-0", employee0.getFirstName());
+		assertEquals(employees.size(), 10);
 	}
 }

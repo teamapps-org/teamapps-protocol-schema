@@ -46,8 +46,14 @@ public class MessageModelCollection implements ModelCollection {
 		return definition;
 	}
 
-	public ObjectPropertyDefinition createModel(String name, String uuid, int getModelVersion, String title, String specificType) {
+	public ObjectPropertyDefinition createModel(String name, String uuid, String title, String specificType) {
 		ObjectPropertyDefinition definition = new ObjectPropertyDefinition(uuid, name, title, specificType, version);
+		addModel(definition);
+		return definition;
+	}
+
+	public ObjectPropertyDefinition createModel(String name, String uuid, int modelVersion, String title, String specificType) {
+		ObjectPropertyDefinition definition = new ObjectPropertyDefinition(uuid, name, title, specificType, modelVersion);
 		addModel(definition);
 		return definition;
 	}

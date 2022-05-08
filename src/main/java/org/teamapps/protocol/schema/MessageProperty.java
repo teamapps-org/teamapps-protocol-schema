@@ -19,6 +19,7 @@
  */
 package org.teamapps.protocol.schema;
 
+import io.netty.buffer.ByteBuf;
 import org.teamapps.protocol.file.FileSink;
 
 import java.io.DataOutputStream;
@@ -68,7 +69,11 @@ public interface MessageProperty {
 
 	String[] getStringArrayProperty();
 
+	String getAsString();
+
 	void write(DataOutputStream dos, FileSink fileSink) throws IOException;
+
+	void write(ByteBuf buffer, FileSink fileSink) throws IOException;
 
 	byte[] toBytes() throws IOException;
 

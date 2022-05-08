@@ -77,7 +77,7 @@ public class MessagePojoBuilder {
 							.append(propDef.getKey()).append(", ")
 							.append(withQuotes(propDef.getSpecificType())).append(", ")
 							.append(withQuotes(propDef.getTitle())).append(", ")
-							.append(propDef.getAsReferencePropertyDefinition().getReferencedObject().getName())
+							.append(propDef.getReferencedObject().getName())
 							.append(");\n");
 				} else {
 					data.append(getTabs(2))
@@ -158,7 +158,7 @@ public class MessagePojoBuilder {
 						.append(firstUpperCase(objDef.getName())).append(" ")
 						.append("add")
 						.append(firstUpperCase(propDef.getName())).append("(")
-						.append(firstUpperCase(propDef.getAsReferencePropertyDefinition().getReferencedObject().getName())).append(" value) {\n")
+						.append(firstUpperCase(propDef.getReferencedObject().getName())).append(" value) {\n")
 						.append(getTabs(2))
 						.append("addReference").append("(")
 						.append(withQuotes(propDef.getName())).append(", value);\n")
@@ -204,9 +204,9 @@ public class MessagePojoBuilder {
 		return switch (propDef.getType()) {
 			case OBJECT -> firstUpperCase(propDef.getName());
 			case OBJECT_SINGLE_REFERENCE ->
-					firstUpperCase(propDef.getAsReferencePropertyDefinition().getReferencedObject().getName());
+					firstUpperCase(propDef.getReferencedObject().getName());
 			case OBJECT_MULTI_REFERENCE ->
-					"List<" + firstUpperCase(propDef.getAsReferencePropertyDefinition().getReferencedObject().getName()) + ">";
+					"List<" + firstUpperCase(propDef.getReferencedObject().getName()) + ">";
 			case BOOLEAN -> "boolean";
 			case BYTE -> "byte";
 			case INT -> "int";

@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,6 +19,9 @@
  */
 package org.teamapps.protocol.schema;
 
+import org.teamapps.protocol.message.MessageUtils;
+
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -42,6 +45,48 @@ public class ObjectPropertyDefinition extends AbstractPropertyDefinition impleme
 		this.modelVersion = (short) modelVersion;
 	}
 
+	public ObjectPropertyDefinition(byte[] bytes) throws IOException {
+		this(new DataInputStream(new ByteArrayInputStream(bytes)));
+	}
+
+	public ObjectPropertyDefinition(DataInputStream dis) throws IOException {
+		this(dis, new HashMap<>());
+	}
+
+	public ObjectPropertyDefinition(DataInputStream dis, Map<String, MessageModel> writeCache) throws IOException {
+		this(MessageUtils.readString(dis), MessageUtils.readString(dis), MessageUtils.readString(dis), MessageUtils.readString(dis), dis.readShort());
+		int size = dis.readInt();
+		for (int i = 0; i < size; i++) {
+			PropertyDefinition propertyDefinition = new AbstractPropertyDefinition(this, dis, writeCache);
+			addProperty(propertyDefinition);
+		}
+	}
+
+	public void write(DataOutputStream dos) throws IOException {
+		write(dos, new HashMap<>());
+	}
+
+	public void write(DataOutputStream dos, Map<String, MessageModel> writeCache) throws IOException {
+		MessageUtils.writeString(dos, objectUuid);
+		MessageUtils.writeString(dos, getName());
+		MessageUtils.writeString(dos, getTitle());
+		MessageUtils.writeString(dos, getSpecificType());
+		dos.writeShort(modelVersion);
+		dos.writeInt(definitions.size());
+		for (PropertyDefinition propertyDefinition : definitions) {
+			propertyDefinition.write(dos, writeCache);
+		}
+	}
+
+	@Override
+	public byte[] toBytes() throws IOException {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		DataOutputStream dos = new DataOutputStream(bos);
+		write(dos);
+		dos.close();
+		return bos.toByteArray();
+	}
+
 	public String getObjectUuid() {
 		return objectUuid;
 	}
@@ -60,7 +105,7 @@ public class ObjectPropertyDefinition extends AbstractPropertyDefinition impleme
 	}
 
 	public void addSingleReference(String name, int key, String specificType, String title, ObjectPropertyDefinition referencedObject) {
-		ReferencePropertyDefinition referencePropertyDefinition = new ReferencePropertyDefinition(this, name, key, specificType, title, referencedObject, false);
+		AbstractPropertyDefinition referencePropertyDefinition = new AbstractPropertyDefinition(this, name, key, specificType, title, referencedObject, false);
 		addProperty(referencePropertyDefinition);
 	}
 
@@ -69,13 +114,8 @@ public class ObjectPropertyDefinition extends AbstractPropertyDefinition impleme
 	}
 
 	public void addMultiReference(String name, int key, String specificType, String title, ObjectPropertyDefinition referencedObject) {
-		ReferencePropertyDefinition referencePropertyDefinition = new ReferencePropertyDefinition(this, name, key, specificType, title, referencedObject, true);
+		AbstractPropertyDefinition referencePropertyDefinition = new AbstractPropertyDefinition(this, name, key, specificType, title, referencedObject, true);
 		addProperty(referencePropertyDefinition);
-	}
-
-	public void addEnumProperty(String name, int key, String[] enumValues, String specificType, String title) {
-		EnumPropertyDefinition enumPropertyDefinition = new EnumPropertyDefinition(this, name, key, enumValues, specificType, title);
-		addProperty(enumPropertyDefinition);
 	}
 
 	public void addProperty(PropertyDefinition field) {
@@ -98,8 +138,8 @@ public class ObjectPropertyDefinition extends AbstractPropertyDefinition impleme
 	}
 
 	@Override
-	public byte[] toBytes() {
-		return new byte[0];
+	public String getModelUuid() {
+		return objectUuid;
 	}
 
 	@Override

@@ -19,9 +19,12 @@
  */
 package org.teamapps.protocol.schema;
 
+import java.io.IOException;
 import java.util.List;
 
 public interface MessageModel {
+
+	String getModelUuid();
 
 	short getModelVersion();
 
@@ -33,5 +36,5 @@ public interface MessageModel {
 
 	PropertyDefinition getPropertyDefinitionByName(String name);
 
-	byte[] toBytes();
+	byte[] toBytes() throws IOException;
 }

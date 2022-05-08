@@ -19,6 +19,7 @@
  */
 package org.teamapps.protocol.message;
 
+import io.netty.buffer.ByteBuf;
 import org.teamapps.protocol.file.FileProvider;
 import org.teamapps.protocol.file.FileSink;
 
@@ -66,6 +67,16 @@ public class MessageUtils {
 		writeString(buffer, fileId);
 	}
 
+	public static void writeFile(ByteBuf buffer, File file, FileSink fileSink) throws IOException {
+		if (fileSink == null || file == null) {
+			writeString(buffer, null);
+			return;
+		}
+		String fileId = fileSink.handleFile(file);
+		writeString(buffer, fileId);
+	}
+
+
 	public static void writeIntAsByte(DataOutputStream dos, int value) throws IOException {
 		dos.writeByte(value);
 	}
@@ -94,6 +105,17 @@ public class MessageUtils {
 		}
 	}
 
+
+	public static void writeString(ByteBuf buffer, String value) {
+		if (value != null && !value.isEmpty()) {
+			byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
+			buffer.writeInt(bytes.length);
+			buffer.writeBytes(bytes);
+		} else {
+			buffer.writeInt(0);
+		}
+	}
+
 	public static String readString(DataInputStream dis) throws IOException {
 		int length = dis.readInt();
 		if (length == 0) {
@@ -116,12 +138,32 @@ public class MessageUtils {
 		}
 	}
 
+	public static String readString(ByteBuf buf) {
+		int length = buf.readInt();
+		if (length == 0) {
+			return null;
+		} else {
+			byte[] bytes = new byte[length];
+			buf.readBytes(bytes);
+			return new String(bytes, StandardCharsets.UTF_8);
+		}
+	}
+
 	public static void writeByteArray(DataOutputStream dos, byte[] bytes) throws IOException {
 		if (bytes == null) {
 			dos.writeInt(0);
 		} else {
 			dos.writeInt(bytes.length);
 			dos.write(bytes);
+		}
+	}
+
+	public static void writeByteArray(ByteBuf buf, byte[] bytes) throws IOException {
+		if (bytes == null) {
+			buf.writeInt(0);
+		} else {
+			buf.writeInt(bytes.length);
+			buf.writeBytes(bytes);
 		}
 	}
 
@@ -141,6 +183,16 @@ public class MessageUtils {
 		}
 		byte[] bytes = new byte[length];
 		dis.readFully(bytes);
+		return bytes;
+	}
+
+	public static byte[] readByteArray(ByteBuf buf) throws IOException {
+		int length = buf.readInt();
+		if (length == 0) {
+			return null;
+		}
+		byte[] bytes = new byte[length];
+		buf.readBytes(bytes);
 		return bytes;
 	}
 
@@ -382,4 +434,5 @@ public class MessageUtils {
 	public static int readShort(ByteBuffer buffer) {
 		return buffer.getShort();
 	}
+
 }

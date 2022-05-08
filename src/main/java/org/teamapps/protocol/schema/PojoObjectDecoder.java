@@ -19,6 +19,7 @@
  */
 package org.teamapps.protocol.schema;
 
+import io.netty.buffer.ByteBuf;
 import org.teamapps.protocol.file.FileProvider;
 
 import java.io.ByteArrayInputStream;
@@ -27,6 +28,12 @@ import java.io.DataInputStream;
 public interface PojoObjectDecoder<MESSAGE extends MessageObject> {
 
 	MESSAGE decode(DataInputStream dis, FileProvider fileProvider);
+
+	MESSAGE decode(ByteBuf buf, FileProvider fileProvider);
+
+	default MESSAGE remap(MessageObject message) {
+		return null;
+	}
 
 	default MESSAGE decode(byte[] bytes, FileProvider fileProvider) {
 		return decode(new DataInputStream(new ByteArrayInputStream(bytes)), fileProvider);

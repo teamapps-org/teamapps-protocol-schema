@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,6 +20,7 @@
 package org.teamapps.protocol.schema;
 
 
+import io.netty.buffer.ByteBuf;
 import org.teamapps.protocol.file.FileProvider;
 import org.teamapps.protocol.file.FileSink;
 import org.teamapps.protocol.message.MessageUtils;
@@ -30,23 +31,74 @@ import java.util.*;
 public class MessageObject {
 
 	private final ObjectPropertyDefinition objectPropertyDefinition;
-	private final List<MessageProperty> properties = new ArrayList<>();
-	private final Map<String, MessageProperty> propertyByName = new HashMap<>();
+	private final List<MessageProperty> properties;
+	private final Map<String, MessageProperty> propertyByName;
+
 
 	public MessageObject(ObjectPropertyDefinition objectPropertyDefinition) {
 		this.objectPropertyDefinition = objectPropertyDefinition;
+		this.properties = new ArrayList<>();
+		this.propertyByName = new HashMap<>();
 	}
 
 	public MessageObject(MessageModel model) {
-		this.objectPropertyDefinition = model.getObjectPropertyDefinition();
+		this(model.getObjectPropertyDefinition());
+	}
+
+	public MessageObject(MessageObject message, PojoObjectDecoderRegistry decoderRegistry) {
+		this.objectPropertyDefinition = message.objectPropertyDefinition;
+		this.properties = new ArrayList<>();
+		this.propertyByName = new HashMap<>();
+		for (MessageProperty property : message.getProperties()) {
+			MessageProperty messageProperty = new AbstractMessageProperty((AbstractMessageProperty) property, decoderRegistry);
+			properties.add(messageProperty);
+			propertyByName.put(property.getPropertyDefinition().getName(), messageProperty);
+		}
 	}
 
 	public MessageObject(byte[] bytes, MessageModel model, FileProvider fileProvider, PojoObjectDecoderRegistry decoderRegistry) throws IOException {
 		this(new DataInputStream(new ByteArrayInputStream(bytes)), model, fileProvider, decoderRegistry);
 	}
 
+	public MessageObject(byte[] bytes, ModelRegistry modelRegistry, FileProvider fileProvider, PojoObjectDecoderRegistry decoderRegistry) throws IOException {
+		this(new DataInputStream(new ByteArrayInputStream(bytes)), modelRegistry, fileProvider, decoderRegistry);
+	}
+
+	public MessageObject(DataInputStream dis, ModelRegistry modelRegistry, FileProvider fileProvider, PojoObjectDecoderRegistry decoderRegistry) throws IOException {
+		String objectUuid = MessageUtils.readString(dis);
+		short modelVersion = dis.readShort();
+		MessageModel model = modelRegistry.getModel(objectUuid, modelVersion);
+		this.objectPropertyDefinition = model.getObjectPropertyDefinition();
+		this.properties = new ArrayList<>();
+		this.propertyByName = new HashMap<>();
+		int propertyCount = dis.readShort();
+		for (int i = 0; i < propertyCount; i++) {
+			AbstractMessageProperty messageProperty = new AbstractMessageProperty(dis, objectPropertyDefinition, fileProvider, decoderRegistry);
+			properties.add(messageProperty);
+			propertyByName.put(messageProperty.getPropertyDefinition().getName(), messageProperty);
+		}
+	}
+
+	public MessageObject(ByteBuf buf, ModelRegistry modelRegistry, FileProvider fileProvider, PojoObjectDecoderRegistry decoderRegistry) throws IOException {
+		String objectUuid = MessageUtils.readString(buf);
+		short modelVersion = buf.readShort();
+		MessageModel model = modelRegistry.getModel(objectUuid, modelVersion);
+		this.objectPropertyDefinition = model.getObjectPropertyDefinition();
+		this.properties = new ArrayList<>();
+		this.propertyByName = new HashMap<>();
+		int propertyCount = buf.readShort();
+		for (int i = 0; i < propertyCount; i++) {
+			AbstractMessageProperty messageProperty = new AbstractMessageProperty(buf, objectPropertyDefinition, fileProvider, decoderRegistry);
+			properties.add(messageProperty);
+			propertyByName.put(messageProperty.getPropertyDefinition().getName(), messageProperty);
+		}
+	}
+
+
 	public MessageObject(DataInputStream dis, MessageModel model, FileProvider fileProvider, PojoObjectDecoderRegistry decoderRegistry) throws IOException {
 		this.objectPropertyDefinition = model.getObjectPropertyDefinition();
+		this.properties = new ArrayList<>();
+		this.propertyByName = new HashMap<>();
 		String objectUuid = MessageUtils.readString(dis);
 		if (!model.getObjectPropertyDefinition().getObjectUuid().equals(objectUuid)) {
 			throw new RuntimeException("Cannot parse message with wrong model:" + objectUuid + ", expected:" + objectPropertyDefinition.getObjectUuid());
@@ -63,12 +115,49 @@ public class MessageObject {
 		}
 	}
 
+	public MessageObject(ByteBuf buf, MessageModel model, FileProvider fileProvider, PojoObjectDecoderRegistry decoderRegistry) throws IOException {
+		this.objectPropertyDefinition = model.getObjectPropertyDefinition();
+		this.properties = new ArrayList<>();
+		this.propertyByName = new HashMap<>();
+		String objectUuid = MessageUtils.readString(buf);
+		if (!model.getObjectPropertyDefinition().getObjectUuid().equals(objectUuid)) {
+			throw new RuntimeException("Cannot parse message with wrong model:" + objectUuid + ", expected:" + objectPropertyDefinition.getObjectUuid());
+		}
+		short modelVersion = buf.readShort();
+		if (model.getModelVersion() != modelVersion) {
+			System.out.println("Wrong model version " + model + ", expected: " + model.getModelVersion());
+		}
+		int propertyCount = buf.readShort();
+		for (int i = 0; i < propertyCount; i++) {
+			AbstractMessageProperty messageProperty = new AbstractMessageProperty(buf, objectPropertyDefinition, fileProvider, decoderRegistry);
+			properties.add(messageProperty);
+			propertyByName.put(messageProperty.getPropertyDefinition().getName(), messageProperty);
+		}
+	}
+
+	public MessageModel getModel() {
+		return objectPropertyDefinition;
+	}
+
+	public List<MessageProperty> getProperties() {
+		return properties;
+	}
+
 	public void write(DataOutputStream dos, FileSink fileSink) throws IOException {
 		MessageUtils.writeString(dos, objectPropertyDefinition.getObjectUuid());
 		dos.writeShort(objectPropertyDefinition.getModelVersion());
 		dos.writeShort(properties.size());
 		for (MessageProperty field : properties) {
 			field.write(dos, fileSink);
+		}
+	}
+
+	public void write(ByteBuf buffer, FileSink fileSink) throws IOException {
+		MessageUtils.writeString(buffer, objectPropertyDefinition.getObjectUuid());
+		buffer.writeShort(objectPropertyDefinition.getModelVersion());
+		buffer.writeShort(properties.size());
+		for (MessageProperty field : properties) {
+			field.write(buffer, fileSink);
 		}
 	}
 

@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,6 +19,7 @@
  */
 package org.teamapps.protocol.schema;
 
+import io.netty.buffer.ByteBuf;
 import org.teamapps.protocol.file.FileProvider;
 import org.teamapps.protocol.file.FileSink;
 import org.teamapps.protocol.message.MessageUtils;
@@ -38,6 +39,27 @@ public class AbstractMessageProperty implements MessageProperty {
 		this.value = value;
 	}
 
+	public AbstractMessageProperty(AbstractMessageProperty property, PojoObjectDecoderRegistry decoderRegistry) {
+		this.propertyDefinition = property.propertyDefinition;
+		if (propertyDefinition.isReferenceProperty()) {
+			ObjectPropertyDefinition referencedObjectDefinition = propertyDefinition.getReferencedObject();
+			PojoObjectDecoder<? extends MessageObject> messageDecoder = decoderRegistry.getMessageDecoder(referencedObjectDefinition.getObjectUuid());
+			if (propertyDefinition.isMultiReference()) {
+				List<MessageObject> messageObjects = (List<MessageObject>) property.value;
+				List<MessageObject> remappedMessages = new ArrayList<>();
+				for (MessageObject messageObject : messageObjects) {
+					remappedMessages.add(messageDecoder.remap(messageObject));
+				}
+				this.value = remappedMessages;
+			} else {
+				MessageObject messageObject = (MessageObject) property.value;
+				this.value = messageDecoder.remap(messageObject);
+			}
+		} else {
+			this.value = property.value;
+		}
+	}
+
 	public AbstractMessageProperty(DataInputStream dis, MessageModel model, FileProvider fileProvider, PojoObjectDecoderRegistry decoderRegistry) throws IOException {
 		PropertyType type = PropertyType.getById(dis.readByte());
 		int key = dis.readShort();
@@ -47,8 +69,7 @@ public class AbstractMessageProperty implements MessageProperty {
 		}
 		switch (propertyDefinition.getType()) {
 			case OBJECT_SINGLE_REFERENCE -> {
-				ReferencePropertyDefinition referencePropertyDefinition = propertyDefinition.getAsReferencePropertyDefinition();
-				ObjectPropertyDefinition referencedObjectDefinition = referencePropertyDefinition.getReferencedObject();
+				ObjectPropertyDefinition referencedObjectDefinition = propertyDefinition.getReferencedObject();
 				if (decoderRegistry != null && decoderRegistry.containsDecoder(referencedObjectDefinition.getObjectUuid())) {
 					PojoObjectDecoder<? extends MessageObject> messageDecoder = decoderRegistry.getMessageDecoder(referencedObjectDefinition.getObjectUuid());
 					value = messageDecoder.decode(dis, fileProvider);
@@ -57,8 +78,7 @@ public class AbstractMessageProperty implements MessageProperty {
 				}
 			}
 			case OBJECT_MULTI_REFERENCE -> {
-				ReferencePropertyDefinition referencePropertyDefinition = propertyDefinition.getAsReferencePropertyDefinition();
-				ObjectPropertyDefinition referencedObjectDefinition = referencePropertyDefinition.getReferencedObject();
+				ObjectPropertyDefinition referencedObjectDefinition = propertyDefinition.getReferencedObject();
 				List<MessageObject> messageObjects = new ArrayList<>();
 				int messageCount = dis.readInt();
 				if (decoderRegistry != null && decoderRegistry.containsDecoder(referencedObjectDefinition.getObjectUuid())) {
@@ -88,6 +108,62 @@ public class AbstractMessageProperty implements MessageProperty {
 			case DOUBLE_ARRAY -> value = MessageUtils.readDoubleArray(dis);
 			case STRING_ARRAY -> value = MessageUtils.readStringArray(dis);
 			case FILE -> value = MessageUtils.readFile(dis, fileProvider);
+			case ENUM -> {
+				value = null;
+			}
+			default ->
+					throw new RuntimeException("Message parsing error - property type unknown:" + propertyDefinition.getType());
+		}
+	}
+
+	public AbstractMessageProperty(ByteBuf buf, MessageModel model, FileProvider fileProvider, PojoObjectDecoderRegistry decoderRegistry) throws IOException {
+		PropertyType type = PropertyType.getById(buf.readByte());
+		int key = buf.readShort();
+		this.propertyDefinition = model.getPropertyDefinitionByKey(key);
+		if (type != propertyDefinition.getType()) {
+			throw new RuntimeException("Message parsing error - property type mismatch: " + type + " <-> " + propertyDefinition.getType());
+		}
+		switch (propertyDefinition.getType()) {
+			case OBJECT_SINGLE_REFERENCE -> {
+				ObjectPropertyDefinition referencedObjectDefinition = propertyDefinition.getReferencedObject();
+				if (decoderRegistry != null && decoderRegistry.containsDecoder(referencedObjectDefinition.getObjectUuid())) {
+					PojoObjectDecoder<? extends MessageObject> messageDecoder = decoderRegistry.getMessageDecoder(referencedObjectDefinition.getObjectUuid());
+					value = messageDecoder.decode(buf, fileProvider);
+				} else {
+					value = new MessageObject(buf, referencedObjectDefinition, fileProvider, decoderRegistry);
+				}
+			}
+			case OBJECT_MULTI_REFERENCE -> {
+				ObjectPropertyDefinition referencedObjectDefinition = propertyDefinition.getReferencedObject();
+				List<MessageObject> messageObjects = new ArrayList<>();
+				int messageCount = buf.readInt();
+				if (decoderRegistry != null && decoderRegistry.containsDecoder(referencedObjectDefinition.getObjectUuid())) {
+					PojoObjectDecoder<? extends MessageObject> messageDecoder = decoderRegistry.getMessageDecoder(referencedObjectDefinition.getObjectUuid());
+					for (int i = 0; i < messageCount; i++) {
+						messageObjects.add(messageDecoder.decode(buf, fileProvider));
+					}
+				} else {
+					for (int i = 0; i < messageCount; i++) {
+						messageObjects.add(new MessageObject(buf, referencedObjectDefinition, fileProvider, decoderRegistry));
+					}
+				}
+				value = messageObjects;
+			}
+			case BOOLEAN -> value = buf.readBoolean();
+			case BYTE -> value = buf.readByte();
+			case INT -> value = buf.readInt();
+			case LONG -> value = buf.readLong();
+			case FLOAT -> value = buf.readFloat();
+			case DOUBLE -> value = buf.readDouble();
+			case STRING -> value = MessageUtils.readString(buf);
+//			case BITSET -> value = MessageUtils.readBitSet(buf);
+			case BYTE_ARRAY -> value = MessageUtils.readByteArray(buf);
+//			case INT_ARRAY -> value = MessageUtils.readIntArray(buf);
+//			case LONG_ARRAY -> value = MessageUtils.readLongArray(buf);
+//			case FLOAT_ARRAY -> value = MessageUtils.readFloatArray(buf);
+//			case DOUBLE_ARRAY -> value = MessageUtils.readDoubleArray(buf);
+//			case STRING_ARRAY -> value = MessageUtils.readStringArray(buf);
+//			case FILE -> value = MessageUtils.readFile(buf, fileProvider);
 			case ENUM -> {
 				value = null;
 			}
@@ -131,6 +207,47 @@ public class AbstractMessageProperty implements MessageProperty {
 			case DOUBLE_ARRAY -> MessageUtils.writeDoubleArray(dos, getDoubleArrayProperty());
 			case STRING_ARRAY -> MessageUtils.writeStringArray(dos, getStringArrayProperty());
 			case FILE -> MessageUtils.writeFile(dos, getFileProperty(), fileSink);
+			case ENUM -> {
+				//
+			}
+		}
+	}
+
+	@Override
+	public void write(ByteBuf buf, FileSink fileSink) throws IOException {
+		buf.writeByte(propertyDefinition.getType().getId());
+		buf.writeShort(propertyDefinition.getKey());
+		switch (propertyDefinition.getType()) {
+			case OBJECT_SINGLE_REFERENCE -> {
+				MessageObject referencedObject = getReferencedObject();
+				referencedObject.write(buf, fileSink);
+			}
+			case OBJECT_MULTI_REFERENCE -> {
+				List<MessageObject> referencedObjects = getReferencedObjects();
+				if (referencedObjects == null || referencedObjects.isEmpty()) {
+					buf.writeInt(0);
+				} else {
+					buf.writeInt(referencedObjects.size());
+					for (MessageObject referencedObject : referencedObjects) {
+						referencedObject.write(buf, fileSink);
+					}
+				}
+			}
+			case BOOLEAN -> buf.writeBoolean(getBooleanProperty());
+			case BYTE -> buf.writeByte(getByteProperty());
+			case INT -> buf.writeInt(getIntProperty());
+			case LONG -> buf.writeLong(getLongProperty());
+			case FLOAT -> buf.writeFloat(getFloatProperty());
+			case DOUBLE -> buf.writeDouble(getDoubleProperty());
+			case STRING -> MessageUtils.writeString(buf, getStringProperty());
+//			case BITSET -> MessageUtils.writeBitSet(buf, getBitSetProperty());
+			case BYTE_ARRAY -> MessageUtils.writeByteArray(buf, getByteArrayProperty());
+//			case INT_ARRAY -> MessageUtils.writeIntArray(buf, getIntArrayProperty());
+//			case LONG_ARRAY -> MessageUtils.writeLongArray(buf, getLongArrayProperty());
+//			case FLOAT_ARRAY -> MessageUtils.writeFloatArray(buf, getFloatArrayProperty());
+//			case DOUBLE_ARRAY -> MessageUtils.writeDoubleArray(buf, getDoubleArrayProperty());
+//			case STRING_ARRAY -> MessageUtils.writeStringArray(buf, getStringArrayProperty());
+			case FILE -> MessageUtils.writeFile(buf, getFileProperty(), fileSink);
 			case ENUM -> {
 				//
 			}
@@ -271,6 +388,11 @@ public class AbstractMessageProperty implements MessageProperty {
 	}
 
 	@Override
+	public String getAsString() {
+		return "" + value;
+	}
+
+	@Override
 	public String explain(int level) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("\t".repeat(level)).append(propertyDefinition.getName()).append(", ");
@@ -280,9 +402,8 @@ public class AbstractMessageProperty implements MessageProperty {
 		sb.append(propertyDefinition.getType());
 		sb.append(propertyDefinition.getContentType() != PropertyContentType.GENERIC ? ", " + propertyDefinition.getContentType() : "");
 		if (propertyDefinition.isReferenceProperty()) {
-			ReferencePropertyDefinition referencePropertyDefinition = propertyDefinition.getAsReferencePropertyDefinition();
-			ObjectPropertyDefinition referenceDefinition = referencePropertyDefinition.getReferencedObject();
-			if (referencePropertyDefinition.isMultiReference()) {
+			ObjectPropertyDefinition referenceDefinition = propertyDefinition.getReferencedObject();
+			if (propertyDefinition.isMultiReference()) {
 				sb.append("\n");
 				for (MessageObject referencedObject : getReferencedObjects()) {
 					sb.append(referencedObject.explain(level + 1)).append("\n");

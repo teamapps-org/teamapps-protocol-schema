@@ -20,6 +20,10 @@
 package org.teamapps.protocol.schema;
 
 
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.util.Map;
+
 public interface PropertyDefinition {
 
 	ObjectPropertyDefinition getParent();
@@ -40,12 +44,16 @@ public interface PropertyDefinition {
 
 	boolean isReferenceProperty();
 
+	ObjectPropertyDefinition getReferencedObject();
+
+	boolean isMultiReference();
+
 	boolean isEnumProperty();
 
-	ReferencePropertyDefinition getAsReferencePropertyDefinition();
+	void write(DataOutputStream dos) throws IOException;
 
-	EnumPropertyDefinition getAsEnumPropertyDefinition();
+	void write(DataOutputStream dos, Map<String, MessageModel> writeCache) throws IOException;
 
-	byte[] toBytes();
+	byte[] toBytes() throws IOException;
 
 }

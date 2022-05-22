@@ -53,7 +53,13 @@ public interface MessageProperty {
 
 	String getStringProperty();
 
-	File getFileProperty();
+	FileProperty getFileProperty();
+
+	File getFilePropertyAsFile();
+
+	String getFilePropertyAsFileName();
+
+	long getFilePropertyAsFileLength();
 
 	BitSet getBitSetProperty();
 

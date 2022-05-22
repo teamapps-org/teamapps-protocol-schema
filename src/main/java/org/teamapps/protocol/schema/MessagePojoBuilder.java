@@ -152,6 +152,50 @@ public class MessagePojoBuilder {
 					.append(getTabs(1))
 					.append("}\n\n");
 
+			if (propDef.getType() == PropertyType.FILE) {
+				data.append(getTabs(1))
+						.append("public File get")
+						.append(firstUpperCase(propDef.getName())).append("AsFile").append("() {\n")
+						.append(getTabs(2))
+						.append("return get").append("FilePropertyAsFile").append("(")
+						.append(withQuotes(propDef.getName())).append(");\n")
+						.append(getTabs(1))
+						.append("}\n\n");
+
+				data.append(getTabs(1))
+						.append("public String get")
+						.append(firstUpperCase(propDef.getName())).append("AsFileName").append("() {\n")
+						.append(getTabs(2))
+						.append("return get").append("FilePropertyAsFileName").append("(")
+						.append(withQuotes(propDef.getName())).append(");\n")
+						.append(getTabs(1))
+						.append("}\n\n");
+
+				data.append(getTabs(1))
+						.append("public long get")
+						.append(firstUpperCase(propDef.getName())).append("AsFileLength").append("() {\n")
+						.append(getTabs(2))
+						.append("return get").append("FilePropertyAsFileLength").append("(")
+						.append(withQuotes(propDef.getName())).append(");\n")
+						.append(getTabs(1))
+						.append("}\n\n");
+
+
+				data.append(getTabs(1))
+						.append("public ")
+						.append(firstUpperCase(objDef.getName())).append(" ")
+						.append("set")
+						.append(firstUpperCase(propDef.getName())).append("(")
+						.append("File").append(" value) {\n")
+						.append(getTabs(2))
+						.append("set").append(getGetterSetterMethodName(propDef)).append("(")
+						.append(withQuotes(propDef.getName())).append(", value);\n")
+						.append(getTabs(2))
+						.append("return this;\n")
+						.append(getTabs(1))
+						.append("}\n\n");
+			}
+
 			if (propDef.getType() == PropertyType.OBJECT_MULTI_REFERENCE) {
 				data.append(getTabs(1))
 						.append("public ")
@@ -221,7 +265,7 @@ public class MessagePojoBuilder {
 			case FLOAT_ARRAY -> "float[]";
 			case DOUBLE_ARRAY -> "double[]";
 			case STRING_ARRAY -> "String[]";
-			case FILE -> "File";
+			case FILE -> "FileProperty";
 			case ENUM -> firstUpperCase(propDef.getName());
 		};
 	}

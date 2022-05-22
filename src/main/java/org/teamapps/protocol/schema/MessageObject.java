@@ -244,11 +244,20 @@ public class MessageObject {
 	}
 
 
-	public MessageObject setFileProperty(String name, File value) {
+	public MessageObject setFileProperty(String name, FileProperty value) {
 		setProperty(name, value);
 		return this;
 	}
 
+	public MessageObject setFileProperty(String name, File file) {
+		setProperty(name, file != null ? new FileProperty(file) : null);
+		return this;
+	}
+
+	public MessageObject setFileProperty(String name, File file, String fileName) {
+		setProperty(name, file != null ? new FileProperty(fileName, file) : null);
+		return this;
+	}
 
 	public MessageObject setBitSetProperty(String name, BitSet value) {
 		setProperty(name, value);
@@ -402,12 +411,39 @@ public class MessageObject {
 	}
 
 
-	public File getFileProperty(String propertyName) {
+	public FileProperty getFileProperty(String propertyName) {
 		MessageProperty property = getProperty(propertyName);
 		if (property != null) {
 			return property.getFileProperty();
 		} else {
 			return null;
+		}
+	}
+
+	public File getFilePropertyAsFile(String propertyName) {
+		MessageProperty property = getProperty(propertyName);
+		if (property != null) {
+			return property.getFilePropertyAsFile();
+		} else {
+			return null;
+		}
+	}
+
+	public String getFilePropertyAsFileName(String propertyName) {
+		MessageProperty property = getProperty(propertyName);
+		if (property != null) {
+			return property.getFilePropertyAsFileName();
+		} else {
+			return null;
+		}
+	}
+
+	public long getFilePropertyAsFileLength(String propertyName) {
+		MessageProperty property = getProperty(propertyName);
+		if (property != null) {
+			return property.getFilePropertyAsFileLength();
+		} else {
+			return 0;
 		}
 	}
 

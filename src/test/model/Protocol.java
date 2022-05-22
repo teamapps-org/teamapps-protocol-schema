@@ -35,6 +35,7 @@ public class Protocol implements ModelCollectionProvider {
 		company.addProperty("type", 2, PropertyType.STRING);
 		company.addSingleReference("ceo", 3, employee);
 		company.addMultiReference("employee", 4, employee);
+		company.addProperty("picture", 5, PropertyType.FILE);
 
 		return modelCollection;
 	}

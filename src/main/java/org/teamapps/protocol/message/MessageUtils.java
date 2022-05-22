@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,6 +22,7 @@ package org.teamapps.protocol.message;
 import io.netty.buffer.ByteBuf;
 import org.teamapps.protocol.file.FileProvider;
 import org.teamapps.protocol.file.FileSink;
+import org.teamapps.protocol.schema.FileProperty;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -32,6 +33,54 @@ import java.nio.charset.StandardCharsets;
 import java.util.BitSet;
 
 public class MessageUtils {
+	public static FileProperty readFileProperty(DataInputStream dis, FileProvider fileProvider) throws IOException {
+		long length = dis.readLong();
+		String fileName = readString(dis);
+		String fileId = readString(dis);
+		File file = fileProvider != null ? fileProvider.getFile(fileId) : null;
+		return new FileProperty(fileName, file, length);
+	}
+
+	public static FileProperty readFileProperty(ByteBuffer buffer, FileProvider fileProvider) {
+		long length = buffer.getLong();
+		String fileName = readString(buffer);
+		String fileId = readString(buffer);
+		File file = fileProvider != null ? fileProvider.getFile(fileId) : null;
+		return new FileProperty(fileName, file, length);
+	}
+
+	public static void writeFileProperty(DataOutputStream dos, FileProperty fileProperty, FileSink fileSink) throws IOException {
+		dos.writeLong(fileProperty != null ? fileProperty.getLength() : 0);
+		writeString(dos, fileProperty != null ? fileProperty.getFileName() : null);
+		if (fileSink == null || fileProperty == null || !fileProperty.exists() || fileProperty.getLength() == 0) {
+			writeString(dos, null);
+			return;
+		}
+		String fileId = fileSink.handleFile(fileProperty.getFile());
+		writeString(dos, fileId);
+	}
+
+	public static void writeFileProperty(ByteBuffer buffer, FileProperty fileProperty, FileSink fileSink) throws IOException {
+		buffer.putLong(fileProperty != null ? fileProperty.getLength() : 0);
+		writeString(buffer, fileProperty != null ? fileProperty.getFileName() : null);
+		if (fileSink == null || fileProperty == null) {
+			writeString(buffer, null);
+			return;
+		}
+		String fileId = fileSink.handleFile(fileProperty.getFile());
+		writeString(buffer, fileId);
+	}
+
+	public static void writeFileProperty(ByteBuf buffer, FileProperty fileProperty, FileSink fileSink) throws IOException {
+		buffer.writeLong(fileProperty != null ? fileProperty.getLength() : 0);
+		writeString(buffer, fileProperty != null ? fileProperty.getFileName() : null);
+		if (fileSink == null || fileProperty == null) {
+			writeString(buffer, null);
+			return;
+		}
+		String fileId = fileSink.handleFile(fileProperty.getFile());
+		writeString(buffer, fileId);
+	}
 
 	public static File readFile(DataInputStream dis, FileProvider fileProvider) throws IOException {
 		String fileId = readString(dis);

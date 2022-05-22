@@ -107,7 +107,7 @@ public class AbstractMessageProperty implements MessageProperty {
 			case FLOAT_ARRAY -> value = MessageUtils.readFloatArray(dis);
 			case DOUBLE_ARRAY -> value = MessageUtils.readDoubleArray(dis);
 			case STRING_ARRAY -> value = MessageUtils.readStringArray(dis);
-			case FILE -> value = MessageUtils.readFile(dis, fileProvider);
+			case FILE -> value = MessageUtils.readFileProperty(dis, fileProvider);
 			case ENUM -> {
 				value = null;
 			}
@@ -206,7 +206,7 @@ public class AbstractMessageProperty implements MessageProperty {
 			case FLOAT_ARRAY -> MessageUtils.writeFloatArray(dos, getFloatArrayProperty());
 			case DOUBLE_ARRAY -> MessageUtils.writeDoubleArray(dos, getDoubleArrayProperty());
 			case STRING_ARRAY -> MessageUtils.writeStringArray(dos, getStringArrayProperty());
-			case FILE -> MessageUtils.writeFile(dos, getFileProperty(), fileSink);
+			case FILE -> MessageUtils.writeFileProperty(dos, getFileProperty(), fileSink);
 			case ENUM -> {
 				//
 			}
@@ -247,7 +247,7 @@ public class AbstractMessageProperty implements MessageProperty {
 //			case FLOAT_ARRAY -> MessageUtils.writeFloatArray(buf, getFloatArrayProperty());
 //			case DOUBLE_ARRAY -> MessageUtils.writeDoubleArray(buf, getDoubleArrayProperty());
 //			case STRING_ARRAY -> MessageUtils.writeStringArray(buf, getStringArrayProperty());
-			case FILE -> MessageUtils.writeFile(buf, getFileProperty(), fileSink);
+			case FILE -> MessageUtils.writeFileProperty(buf, getFileProperty(), fileSink);
 			case ENUM -> {
 				//
 			}
@@ -340,9 +340,27 @@ public class AbstractMessageProperty implements MessageProperty {
 	}
 
 	@Override
-	public File getFileProperty() {
+	public FileProperty getFileProperty() {
 		if (value == null) return null;
-		return (File) value;
+		return (FileProperty) value;
+	}
+
+	@Override
+	public File getFilePropertyAsFile() {
+		if (value == null) return null;
+		return getFileProperty().getFile();
+	}
+
+	@Override
+	public String getFilePropertyAsFileName() {
+		if (value == null) return null;
+		return getFileProperty().getFileName();
+	}
+
+	@Override
+	public long getFilePropertyAsFileLength() {
+		if (value == null) return 0;
+		return getFileProperty().getLength();
 	}
 
 	@Override

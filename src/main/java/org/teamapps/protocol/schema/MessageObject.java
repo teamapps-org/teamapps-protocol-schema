@@ -34,6 +34,13 @@ public class MessageObject {
 	private final List<MessageProperty> properties;
 	private final Map<String, MessageProperty> propertyByName;
 
+	public static String readMessageObjectUuid(byte[] bytes) throws IOException {
+		return MessageUtils.readString(new DataInputStream(new ByteArrayInputStream(bytes)));
+	}
+
+	public static String readMessageObjectUuid(ByteBuf buf) {
+		return MessageUtils.readString(buf);
+	}
 
 	public MessageObject(ObjectPropertyDefinition objectPropertyDefinition) {
 		this.objectPropertyDefinition = objectPropertyDefinition;

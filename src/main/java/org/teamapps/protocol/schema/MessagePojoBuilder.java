@@ -67,6 +67,12 @@ public class MessagePojoBuilder {
 					.append(withQuotes(objDef.getTitle())).append(", ")
 					.append(withQuotes(objDef.getSpecificType()))
 					.append(");\n");
+		}
+		data.append("\n");
+
+		for (MessageModel model : modelCollection.getModels()) {
+			ObjectPropertyDefinition objDef = model.getObjectPropertyDefinition();
+			String objName = objDef.getName();
 			for (PropertyDefinition propDef : model.getPropertyDefinitions()) {
 				if (propDef.isReferenceProperty()) {
 					String method = propDef.getType() == PropertyType.OBJECT_SINGLE_REFERENCE ? "addSingleReference" : "addMultiReference";
@@ -93,12 +99,14 @@ public class MessagePojoBuilder {
 				}
 
 			}
+			data.append("\n");
 			registry.append(getTabs(2))
 					.append("MODEL_COLLECTION.addMessageDecoder(")
 					.append(objName).append(".getObjectUuid(), ")
 					.append(firstUpperCase(objName))
 					.append(".getMessageDecoder());\n");
 		}
+
 
 		tpl = setValue(tpl, "data", data.toString());
 		tpl = setValue(tpl, "registry", registry.toString());

@@ -331,7 +331,7 @@ public class MessageUtils {
 		if (longArray == null || longArray.length == 0) {
 			dos.writeInt(0);
 		} else {
-			dos.writeLong(longArray.length);
+			dos.writeInt(longArray.length);
 			for (long value : longArray) {
 				dos.writeLong(value);
 			}
@@ -367,7 +367,7 @@ public class MessageUtils {
 		if (floatArray == null || floatArray.length == 0) {
 			dos.writeInt(0);
 		} else {
-			dos.writeFloat(floatArray.length);
+			dos.writeInt(floatArray.length);
 			for (float value : floatArray) {
 				dos.writeFloat(value);
 			}
@@ -402,7 +402,7 @@ public class MessageUtils {
 		if (doubleArray == null || doubleArray.length == 0) {
 			dos.writeInt(0);
 		} else {
-			dos.writeDouble(doubleArray.length);
+			dos.writeInt(doubleArray.length);
 			for (double value : doubleArray) {
 				dos.writeDouble(value);
 			}

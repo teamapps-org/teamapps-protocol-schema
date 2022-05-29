@@ -89,6 +89,11 @@ public class MessageModelCollection implements ModelCollection {
 	}
 
 	@Override
+	public ModelRegistry createRegistry() {
+		return new MessageModelRegistry(this);
+	}
+
+	@Override
 	public void addMessageDecoder(String uuid, PojoObjectDecoder<? extends MessageObject> decoder) {
 		decoderByUuid.put(uuid,decoder);
 	}

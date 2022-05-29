@@ -38,9 +38,9 @@ public interface ModelRegistry {
 
 	MessageModel getModel(byte[] message) throws IOException;
 
-	PropertyDefinition getPropertyDefinition(String qualifiedName);
-
 	ModelRegistry addModel(MessageModel model);
+
+	ModelRegistry addModelCollection(ModelCollection collection);
 
 	byte[] toBytes();
 

@@ -91,6 +91,46 @@ public class ObjectPropertyDefinition extends AbstractPropertyDefinition impleme
 		return objectUuid;
 	}
 
+	public void addBooleanProperty(String name, int key) {
+		addProperty(name, key, PropertyType.BOOLEAN);
+	}
+
+	public void addByteProperty(String name, int key) {
+		addProperty(name, key, PropertyType.BYTE);
+	}
+
+	public void addStringProperty(String name, int key) {
+		addProperty(name, key, PropertyType.STRING);
+	}
+
+	public void addIntProperty(String name, int key) {
+		addProperty(name, key, PropertyType.INT);
+	}
+
+	public void addLongProperty(String name, int key) {
+		addProperty(name, key, PropertyType.LONG);
+	}
+
+	public void addFloatProperty(String name, int key) {
+		addProperty(name, key, PropertyType.FLOAT);
+	}
+
+	public void addDoubleProperty(String name, int key) {
+		addProperty(name, key, PropertyType.DOUBLE);
+	}
+
+	public void addFileProperty(String name, int key) {
+		addProperty(name, key, PropertyType.FILE);
+	}
+
+	public void addByteArrayProperty(String name, int key) {
+		addProperty(name, key, PropertyType.BYTE_ARRAY);
+	}
+
+	public void addStringArrayProperty(String name, int key) {
+		addProperty(name, key, PropertyType.STRING_ARRAY);
+	}
+
 	public void addProperty(String name, int key, PropertyType type) {
 		addProperty(name, key, type, PropertyContentType.GENERIC, null, null);
 	}

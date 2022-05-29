@@ -32,5 +32,7 @@ public interface ModelCollection extends PojoObjectDecoderRegistry{
 
 	List<MessageModel> getModels();
 
+	ModelRegistry createRegistry();
+
 	byte[] toBytes();
 }

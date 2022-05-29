@@ -35,6 +35,13 @@ public class MessageModelRegistry implements ModelRegistry, PojoObjectDecoderReg
 	private List<MessageModel> allModels = new ArrayList<>();
 	private Map<String, PojoObjectDecoder<? extends MessageObject>> decoderByUuid = new ConcurrentHashMap<>();
 
+	public MessageModelRegistry() {
+	}
+
+	public MessageModelRegistry(ModelCollection collection) {
+		addModelCollection(collection);
+	}
+
 	@Override
 	public void mergeRegistry(ModelRegistry registry) {
 		registry.getAllModels().forEach(this::addModel);
@@ -79,12 +86,6 @@ public class MessageModelRegistry implements ModelRegistry, PojoObjectDecoderReg
 	}
 
 	@Override
-	public PropertyDefinition getPropertyDefinition(String qualifiedName) {
-		//todo
-		return null;
-	}
-
-	@Override
 	public ModelRegistry addModel(MessageModel model) {
 		String objectUuid = model.getObjectPropertyDefinition().getObjectUuid();
 		short modelVersion = model.getModelVersion();
@@ -116,6 +117,19 @@ public class MessageModelRegistry implements ModelRegistry, PojoObjectDecoderReg
 			modelsByObjectUuid.put(objectUuid, messageModels);
 			latestModelByObjectUuid.put(objectUuid, model);
 			allModels.add(model);
+		}
+		return this;
+	}
+
+	@Override
+	public ModelRegistry addModelCollection(ModelCollection collection) {
+		for (MessageModel model : collection.getModels()) {
+			String modelUuid = model.getModelUuid();
+			PojoObjectDecoder<? extends MessageObject> decoder = collection.getMessageDecoder(modelUuid);
+			addModel(model);
+			if (decoder != null) {
+				addMessageDecoder(modelUuid, decoder);
+			}
 		}
 		return this;
 	}

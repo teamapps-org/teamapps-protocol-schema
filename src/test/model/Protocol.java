@@ -37,6 +37,9 @@ public class Protocol implements ModelCollectionProvider {
 		company.addMultiReference("employee", 4, employee);
 		company.addProperty("picture", 5, PropertyType.FILE);
 
+		ProtocolServiceSchema testService = modelCollection.createProtocolServiceSchema("testService");
+		testService.addMethod("method1", company, employee);
+
 		return modelCollection;
 	}
 }

@@ -37,11 +37,59 @@ public class MessagePojoBuilder {
 			dir.mkdir();
 		}
 		System.out.println("Create source in path: " + dir.getPath());
-		//createServiceClasses(modelCollection, dir);
+		createServiceClasses(modelCollection, dir);
 		createSchemaPojo(modelCollection, dir);
 		for (MessageModel model : modelCollection.getModels()) {
 			createMessagePojoSave(modelCollection, model, dir);
 		}
+	}
+
+	private static void createServiceClasses(ModelCollection modelCollection, File directory) throws IOException {
+		for (ProtocolServiceSchema protocolServiceSchema : modelCollection.getProtocolServiceSchemas()) {
+			String tpl = readTemplate("protocolService.tpl");
+			tpl = setValue(tpl, "package", modelCollection.getNamespace());
+			String type = "Abstract" + firstUpperCase(protocolServiceSchema.getServiceName());
+			tpl = setValue(tpl, "type", type);
+			tpl = setValue(tpl, "serviceName", protocolServiceSchema.getServiceName());
+
+			StringBuilder data = new StringBuilder();
+			StringBuilder cases = new StringBuilder();
+			for (ProtocolServiceMethod method : protocolServiceSchema.getServiceMethods()) {
+				String inputMessageName = method.getInputMessage().getName();
+				data.append(getTabs(1)).append("public abstract ")
+						.append(firstUpperCase(method.getOutputMessage().getName()))
+						.append(" ").append(method.getMethodName()).append("(").append(firstUpperCase(inputMessageName)).append(" value);\n\n");
+				cases.append(getTabs(3)).append("case \"").append(method.getMethodName()).append("\" -> {\n");
+				cases.append(getTabs(4)).append("return ").append(method.getMethodName()).append("(").append(firstUpperCase(inputMessageName)).append(".remap(request));\n");
+				cases.append(getTabs(3)).append("}\n");
+			}
+			tpl = setValue(tpl, "methods", data.toString());
+			tpl = setValue(tpl, "cases", cases.toString());
+
+			File file = new File(directory, type + ".java");
+			Files.writeString(file.toPath(), tpl);
+
+			type = firstUpperCase(protocolServiceSchema.getServiceName()) + "Client";
+			tpl = readTemplate("protocolServiceClient.tpl");
+			tpl = setValue(tpl, "package", modelCollection.getNamespace());
+			tpl = setValue(tpl, "type", type);
+			tpl = setValue(tpl, "serviceName", protocolServiceSchema.getServiceName());
+
+			data = new StringBuilder();
+			for (ProtocolServiceMethod method : protocolServiceSchema.getServiceMethods()) {
+				String inputMessageName = method.getInputMessage().getObjectPropertyDefinition().getName();
+				String outputMessageName = method.getOutputMessage().getObjectPropertyDefinition().getName();
+				data.append(getTabs(1)).append("public ").append(firstUpperCase(outputMessageName))
+						.append(" ").append(method.getMethodName()).append("(").append(firstUpperCase(inputMessageName)).append(" value) {\n");
+				data.append(getTabs(2)).append("return executeClusterServiceMethod(\"").append(method.getMethodName()).append("\", value, ").append(firstUpperCase(outputMessageName)).append(".getMessageDecoder());\n");
+				data.append(getTabs(1)).append("}\n\n");
+			}
+			tpl = setValue(tpl, "methods", data.toString());
+
+			file = new File(directory, type + ".java");
+			Files.writeString(file.toPath(), tpl);
+		}
+
 	}
 
 	private static void createSchemaPojo(ModelCollection modelCollection, File directory) throws IOException {

@@ -19,22 +19,33 @@
  */
 package org.teamapps.protocol.schema;
 
+
+import java.util.ArrayList;
 import java.util.List;
 
-public interface ModelCollection extends PojoObjectDecoderRegistry{
-	String getName();
+public class ProtocolServiceSchema {
 
-	short getVersion();
+	private final String serviceName;
+	private final List<ProtocolServiceMethod> serviceMethods = new ArrayList<>();
 
-	String getNamespace();
+	public ProtocolServiceSchema(String serviceName) {
+		this.serviceName = serviceName;
+	}
 
-	MessageModel getModel(String uuid);
+	public ProtocolServiceSchema addMethod(ProtocolServiceMethod method) {
+		serviceMethods.add(method);
+		return this;
+	}
 
-	List<MessageModel> getModels();
+	public ProtocolServiceSchema addMethod(String methodName, ObjectPropertyDefinition inputMessage, ObjectPropertyDefinition outputMessage) {
+		return addMethod(new ProtocolServiceMethod(methodName, inputMessage, outputMessage));
+	}
 
-	ModelRegistry createRegistry();
+	public String getServiceName() {
+		return serviceName;
+	}
 
-	List<ProtocolServiceSchema> getProtocolServiceSchemas();
-
-	byte[] toBytes();
+	public List<ProtocolServiceMethod> getServiceMethods() {
+		return serviceMethods;
+	}
 }

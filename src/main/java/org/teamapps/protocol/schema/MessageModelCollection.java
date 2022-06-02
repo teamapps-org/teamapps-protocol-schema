@@ -32,7 +32,7 @@ public class MessageModelCollection implements ModelCollection {
 	private final List<MessageModel> models = new ArrayList<>();
 	private final Map<String, MessageModel> modelByKey = new ConcurrentHashMap<>();
 	private Map<String, PojoObjectDecoder<? extends MessageObject>> decoderByUuid = new ConcurrentHashMap<>();
-
+	private List<ProtocolServiceSchema> protocolServiceSchemas = new ArrayList<>();
 
 	public MessageModelCollection(String name, String namespace, int version) {
 		this.name = name;
@@ -63,6 +63,12 @@ public class MessageModelCollection implements ModelCollection {
 		modelByKey.put(model.getObjectPropertyDefinition().getObjectUuid(), model);
 	}
 
+	public ProtocolServiceSchema createProtocolServiceSchema(String serviceName) {
+		ProtocolServiceSchema serviceSchema = new ProtocolServiceSchema(serviceName);
+		protocolServiceSchemas.add(serviceSchema);
+		return serviceSchema;
+	}
+
 	@Override
 	public String getName() {
 		return name;
@@ -91,6 +97,11 @@ public class MessageModelCollection implements ModelCollection {
 	@Override
 	public ModelRegistry createRegistry() {
 		return new MessageModelRegistry(this);
+	}
+
+	@Override
+	public List<ProtocolServiceSchema> getProtocolServiceSchemas() {
+		return protocolServiceSchemas;
 	}
 
 	@Override

@@ -40,6 +40,11 @@ public class {type} extends MessageObject {
 		public {type} remap(MessageObject message) {
 			return new {type}(message, {schema}.MODEL_COLLECTION);
 		}
+
+        @Override
+        public String getMessageObjectUuid() {
+            return OBJECT_UUID;
+        }
 	};
 
 	public static PojoObjectDecoder<{type}> getMessageDecoder() {

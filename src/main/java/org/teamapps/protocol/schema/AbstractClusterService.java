@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,22 +19,22 @@
  */
 package org.teamapps.protocol.schema;
 
-import java.util.List;
 
-public interface ModelCollection extends PojoObjectDecoderRegistry{
-	String getName();
+public abstract class AbstractClusterService {
 
-	short getVersion();
+	private final ClusterServiceRegistry clusterServiceRegistry;
+	private final String serviceName;
 
-	String getNamespace();
+	public AbstractClusterService(ClusterServiceRegistry clusterServiceRegistry, String serviceName) {
+		this.clusterServiceRegistry = clusterServiceRegistry;
+		this.serviceName = serviceName;
+		clusterServiceRegistry.registerService(this);
+	}
 
-	MessageModel getModel(String uuid);
+	public String getServiceName() {
+		return serviceName;
+	}
 
-	List<MessageModel> getModels();
+	public abstract MessageObject handleMessage(String method, MessageObject request);
 
-	ModelRegistry createRegistry();
-
-	List<ProtocolServiceSchema> getProtocolServiceSchemas();
-
-	byte[] toBytes();
 }

@@ -146,6 +146,10 @@ public class MessageObject {
 		return objectPropertyDefinition;
 	}
 
+	public String getName() {
+		return objectPropertyDefinition.getName();
+	}
+
 	public List<MessageProperty> getProperties() {
 		return properties;
 	}

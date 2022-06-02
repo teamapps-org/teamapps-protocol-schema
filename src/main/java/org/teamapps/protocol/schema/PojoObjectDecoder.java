@@ -31,9 +31,9 @@ public interface PojoObjectDecoder<MESSAGE extends MessageObject> {
 
 	MESSAGE decode(ByteBuf buf, FileProvider fileProvider);
 
-	default MESSAGE remap(MessageObject message) {
-		return null;
-	}
+	MESSAGE remap(MessageObject message);
+
+	String getMessageObjectUuid();
 
 	default MESSAGE decode(byte[] bytes, FileProvider fileProvider) {
 		return decode(new DataInputStream(new ByteArrayInputStream(bytes)), fileProvider);

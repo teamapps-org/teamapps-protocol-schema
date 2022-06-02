@@ -19,22 +19,23 @@
  */
 package org.teamapps.protocol.schema;
 
-import java.util.List;
 
-public interface ModelCollection extends PojoObjectDecoderRegistry{
-	String getName();
+public abstract class AbstractClusterServiceClient {
 
-	short getVersion();
+	private final ClusterServiceRegistry clusterServiceRegistry;
+	private final String serviceName;
 
-	String getNamespace();
+	public AbstractClusterServiceClient(ClusterServiceRegistry clusterServiceRegistry, String serviceName) {
+		this.clusterServiceRegistry = clusterServiceRegistry;
+		this.serviceName = serviceName;
+	}
 
-	MessageModel getModel(String uuid);
+	protected <REQUEST extends MessageObject, RESPONSE extends MessageObject> RESPONSE executeClusterServiceMethod(String method, REQUEST request, PojoObjectDecoder<RESPONSE> responseDecoder) {
+		return clusterServiceRegistry.executeServiceMethod(serviceName, method, request, responseDecoder);
+	}
 
-	List<MessageModel> getModels();
+	public boolean isAvailable() {
+		return clusterServiceRegistry.isServiceAvailable(serviceName);
+	}
 
-	ModelRegistry createRegistry();
-
-	List<ProtocolServiceSchema> getProtocolServiceSchemas();
-
-	byte[] toBytes();
 }

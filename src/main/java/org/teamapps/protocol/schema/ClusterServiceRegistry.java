@@ -24,6 +24,8 @@ public interface ClusterServiceRegistry {
 
 	void registerService(AbstractClusterService clusterService);
 
+	void registerModelCollection(ModelCollection modelCollection);
+
 	boolean isServiceAvailable(String serviceName);
 
 	<REQUEST extends MessageObject, RESPONSE extends MessageObject> RESPONSE executeServiceMethod(String serviceName, String method, REQUEST request, PojoObjectDecoder<RESPONSE> responseDecoder);

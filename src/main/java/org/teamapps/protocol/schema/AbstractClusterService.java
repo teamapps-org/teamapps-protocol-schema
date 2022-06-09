@@ -22,12 +22,20 @@ package org.teamapps.protocol.schema;
 
 public abstract class AbstractClusterService {
 
-	private final ClusterServiceRegistry clusterServiceRegistry;
 	private final String serviceName;
 
+	public AbstractClusterService(String serviceName) {
+		this(null, serviceName);
+	}
+
 	public AbstractClusterService(ClusterServiceRegistry clusterServiceRegistry, String serviceName) {
-		this.clusterServiceRegistry = clusterServiceRegistry;
 		this.serviceName = serviceName;
+		if (clusterServiceRegistry != null) {
+			startService(clusterServiceRegistry);
+		}
+	}
+
+	public void startService(ClusterServiceRegistry clusterServiceRegistry) {
 		clusterServiceRegistry.registerService(this);
 	}
 

@@ -127,6 +127,22 @@ public class ObjectPropertyDefinition extends AbstractPropertyDefinition impleme
 		addProperty(name, key, PropertyType.BYTE_ARRAY);
 	}
 
+	public void addIntArrayProperty(String name, int key) {
+		addProperty(name, key, PropertyType.INT_ARRAY);
+	}
+
+	public void addLongArrayProperty(String name, int key) {
+		addProperty(name, key, PropertyType.LONG_ARRAY);
+	}
+
+	public void addFloatArrayProperty(String name, int key) {
+		addProperty(name, key, PropertyType.FLOAT_ARRAY);
+	}
+
+	public void addDoubleArrayProperty(String name, int key) {
+		addProperty(name, key, PropertyType.DOUBLE_ARRAY);
+	}
+
 	public void addStringArrayProperty(String name, int key) {
 		addProperty(name, key, PropertyType.STRING_ARRAY);
 	}

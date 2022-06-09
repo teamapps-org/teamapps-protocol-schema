@@ -6,6 +6,10 @@ import java.io.IOException;
 
 public abstract class {type} extends AbstractClusterService {
 
+    public {type}() {
+        super("{serviceName}");
+    }
+
     public {type}(ClusterServiceRegistry registry) {
         super(registry, "{serviceName}");
     }

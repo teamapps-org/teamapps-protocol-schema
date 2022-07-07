@@ -4,7 +4,7 @@
 
     <groupId>org.teamapps</groupId>
     <artifactId>teamapps-protocol-schema</artifactId>
-    <version>0.4-SNAPSHOT</version>
+    <version>0.4</version>
 
     <name>TeamApps Protocol Schema</name>
     <description>A TeamApps.org protocol and message definition framework</description>
@@ -48,7 +48,7 @@
         <url>https://github.com/teamapps-org/teamapps-protocol-schema</url>
         <connection>scm:git:git@github.com:teamapps-org/teamapps-protocol-schema</connection>
         <developerConnection>scm:git:git@github.com:teamapps-org/teamapps-protocol-schema</developerConnection>
-        <tag>HEAD</tag>
+        <tag>v0.4</tag>
     </scm>
 
     <dependencies>
